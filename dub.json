@@ -1,0 +1,11 @@
+{
+    "authors": [
+        "cym13"
+    ],
+    "copyright": "Copyright © 2020, cym13",
+    "dependencies": {
+    },
+    "description": "A minimal D application.",
+    "license": "proprietary",
+    "name": "demo_randomuuid"
+}

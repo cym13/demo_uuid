@@ -1,0 +1,15 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/demo_randomuuid
+demo_randomuuid.so
+demo_randomuuid.dylib
+demo_randomuuid.dll
+demo_randomuuid.a
+demo_randomuuid.lib
+demo_randomuuid-test-*
+*.exe
+*.o
+*.obj
+*.lst
