@@ -8,7 +8,10 @@ uint c = 0xefc60000;
 /**
  * Phobo's MT19937 output function
  */
-uint zrand(uint z) {
+uint scramble(uint z) {
+    immutable b = 0x9d2c5680;
+    immutable c = 0xefc60000;
+
     z ^=  z >> 11;
     z ^= (z <<  7) & b;
     z ^= (z << 15) & c;
@@ -16,7 +19,10 @@ uint zrand(uint z) {
     return z;
 }
 
-uint reverseZrand(uint z) {
+uint unscramble(uint z) {
+    immutable b = 0x9d2c5680;
+    immutable c = 0xefc60000;
+
     z ^= (z >> 18);
     z ^= (z << 15) & c;
     z = undoLshiftXorMask(z, 7, b);
@@ -26,7 +32,7 @@ uint reverseZrand(uint z) {
 }
 unittest {
     uint z = 0x12345678;
-    assert(z == reverseZrand(zrand(z)));
+    assert(z == unscramble(scramble(z)));
 }
 
 uint undoLshiftXorMask(uint v, uint shift, uint mask) {
@@ -58,27 +64,7 @@ uint reverseScramble(uint z) {
     return z;
 }
 
-uint predictNumber(size_t index, uint[] rawData)
-in {
-    assert(rawData.length >= index+397);
-}
-body {
-    auto output = rawData.map!reverseZrand.array;
-
-    auto i = output[index];
-    auto n = output[index+1];
-    auto c = output[index+397];
-
-    return predictNumberImpl(i, n, c);
-}
-
 uint predictNumber(uint index, uint next, uint conj) {
-    return predictNumberImpl(index.reverseZrand,
-                             next.reverseZrand,
-                             conj.reverseZrand);
-}
-
-uint predictNumberImpl(uint index, uint next, uint conj) {
     immutable n = 624;
     immutable m = 397;
     immutable a = 0x9908b0df;
@@ -86,17 +72,17 @@ uint predictNumberImpl(uint index, uint next, uint conj) {
     uint lowerMask = (cast(uint) 1u << 31) - 1;
     uint upperMask = (~lowerMask) & uint.max;
 
-    uint q = index & upperMask;
-    uint p = next  & lowerMask;
+    uint q = unscramble(index) & upperMask;
+    uint p = unscramble(next)  & lowerMask;
 
     uint y = q | p;
 
-    auto x = y >>1;
+    auto x = y >> 1;
     if (y & 1)
         x ^= a;
-    x ^= conj;
+    x ^= unscramble(conj);
 
-    return zrand(x);
+    return scramble(x);
 }
 
 uint[] uuidToUints(UUID u) {

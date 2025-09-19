@@ -3,7 +3,7 @@ module app;
 import std;
 import web;
 import crackutils;
-import myrand;
+import std.random;
 
 void webDemo() {
     auto web = WebInterface();
@@ -23,7 +23,7 @@ void webDemo() {
 }
 
 void testBasicPostdiction() {
-    auto prng = myrand.Mt19937(5489u);
+    auto prng = Mt19937(5489u);
 
     auto n = 624;
     auto m = 397;
@@ -45,31 +45,31 @@ void testBasicPostdiction() {
     writefln("%0.32b", w);
     writefln("%0.32b", rawOutput[index]);
 
-    writefln("%0.32b", reverseZrand(w));
-    writefln("%0.32b", reverseZrand(rawOutput[index]));
+    writefln("%0.32b", unscramble(w));
+    writefln("%0.32b", unscramble(rawOutput[index]));
 
-    //uint z = reverseZrand(rawOutput[index]);
-    uint z = reverseZrand(w);
-    z ^= reverseZrand(rawOutput[conj]);
+    //uint z = unscramble(rawOutput[index]);
+    uint z = unscramble(w);
+    z ^= unscramble(rawOutput[conj]);
 
-    writefln("Target:      %0.8x", reverseZrand(rawOutput[target]));
+    writefln("Target:      %0.8x", unscramble(rawOutput[target]));
     writefln("Postdiction: %0.8x", reverseScramble(z));
 
-    writefln("Target:      %0.32b", reverseZrand(rawOutput[target]));
+    writefln("Target:      %0.32b", unscramble(rawOutput[target]));
     writefln("Postdiction: %0.32b", reverseScramble(z));
-    writefln("             %0.32b", reverseZrand(rawOutput[target])
+    writefln("             %0.32b", unscramble(rawOutput[target])
                                   ^ reverseScramble(z));
 }
 
 void testReverseZrand() {
-    auto prng = myrand.Mt19937(5489u);
+    auto prng = Mt19937(5489u);
 
     uint z = prng.take(2).array[1];
-    writefln("%0.8x\n%0.8x", z, reverseZrand(z));
+    writefln("%0.8x\n%0.8x", z, unscramble(z));
 }
 
 void testPrediction() {
-    auto prng = myrand.Mt19937(5489u);
+    auto prng = Mt19937(5489u);
 
     auto n = 624;
     auto m = 397;
@@ -80,14 +80,16 @@ void testPrediction() {
     uint index  = 4;
     uint target = index + n;
 
-    auto prediction = predictNumber(index, rawOutput);
+    auto prediction = predictNumber(rawOutput[index],
+                                    rawOutput[index+1],
+                                    rawOutput[index+397]);
 
     writefln("Target:     %0.8x %0.32b", rawOutput[target], rawOutput[target]);
     writefln("Prediction: %0.8x %0.32b", prediction, prediction);
 }
 
 void testPredictUuid() {
-    auto prng = myrand.Mt19937(unpredictableSeed);
+    auto prng = Mt19937(unpredictableSeed);
 
     UUID[] uuidLst = iota(624 / 4 + 10).map!(x => randomUUID(prng)).array;
 
